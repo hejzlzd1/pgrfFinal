@@ -14,6 +14,11 @@ public class MazeGenerator{
         *
         *
         *
+        *
+        *
+        *
+        *
+        *
         * Implementace algoritmu převzata z Github projektu https://github.com/Indexu/Labyrinth
         * */
         public static class Node

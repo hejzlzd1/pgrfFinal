@@ -13,6 +13,7 @@ import transforms.Point3D;
 import utils.MazeGenerator;
 import utils.MazeProcessor;
 
+import java.io.IOException;
 import java.nio.DoubleBuffer;
 
 import static extension.global.GluUtils.gluPerspective;
@@ -23,6 +24,8 @@ import static org.lwjgl.opengl.GL11.GL_LINEAR;
 public class Renderer extends AbstractRenderer {
     private float dx, dy, ox, oy;
     private float zenit, azimut;
+    private lwjglutils.OGLTexture2D floorTexture;
+    private lwjglutils.OGLTexture2D wallTexture;
     private double zenith;
     private GLCamera camera;
     private MazeGenerator mg;
@@ -73,6 +76,12 @@ public class Renderer extends AbstractRenderer {
                         break;
                     case GLFW_KEY_D:
                         camera.right(deltaTrans);
+                        break;
+                    case GLFW_KEY_F:
+                        glEnable(GL_FOG);
+                        break;
+                    case GLFW_KEY_G:
+                        glDisable(GL_FOG);
                         break;
                 }
             }
@@ -134,10 +143,8 @@ public class Renderer extends AbstractRenderer {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         glEnable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glFrontFace(GL_CW);
         glPolygonMode(GL_FRONT, GL_FILL);
-        glPolygonMode(GL_BACK, GL_FILL);
+        glPolygonMode(GL_BACK, GL_NONE);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -145,8 +152,6 @@ public class Renderer extends AbstractRenderer {
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-
 
         Skybox sb = new Skybox();
         sb.loadSkybox();
@@ -157,6 +162,13 @@ public class Renderer extends AbstractRenderer {
         camera = new GLCamera();
         camera.setPosition(new transforms.Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
         camera.setFirstPerson(true);
+
+        try {
+            floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
+            wallTexture = new lwjglutils.OGLTexture2D("textures/wall.jpg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -169,6 +181,14 @@ public class Renderer extends AbstractRenderer {
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
+
+        glEnable(GL_FOG);
+        glFogi(GL_FOG_MODE, GL_LINEAR);
+        glFogi(GL_FOG_START, (int) 0f);
+        glFogi(GL_FOG_END, (int) 10f);
+        glFogf(GL_FOG_DENSITY, 0.08f);
+        glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
+
         gluPerspective(45, width / (float) height, 0.1f, 500.0f);
         GLCamera cameraSky = new GLCamera(camera);
         cameraSky.setPosition(new transforms.Vec3D());
@@ -188,13 +208,13 @@ public class Renderer extends AbstractRenderer {
 
         glPushMatrix();
         camera.setMatrix();
-        MazeProcessor.createWalls(mg.getWalls());
+        MazeProcessor.createWalls(mg.getWalls(),wallTexture);
         glPopMatrix();
 
 
         glPushMatrix();
         camera.setMatrix();
-        new Floor(new Point3D(0,0,0),1f,mg.getWidth(),mg.getHeight()); //maze width/height
+        new Floor(new Point3D(0,0,0),1f,mg.getWidth(),mg.getHeight(),floorTexture); //maze width/height
         glPopMatrix();
 
 
