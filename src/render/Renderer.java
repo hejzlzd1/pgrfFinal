@@ -4,6 +4,7 @@ import extension.global.AbstractRenderer;
 import extension.global.GLCamera;
 import models.Floor;
 import models.Skybox;
+import models.Wall;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -28,6 +29,7 @@ public class Renderer extends AbstractRenderer {
     private lwjglutils.OGLTexture2D wallTexture;
     private double zenith;
     private GLCamera camera;
+    private GLCamera colissionCamera;
     private MazeGenerator mg;
     private float deltaTrans = 0;
     private boolean mouseButton1 = false;
@@ -60,28 +62,41 @@ public class Renderer extends AbstractRenderer {
                 }
                 switch (key) {
                     case GLFW_KEY_W:
-                        //zenith = camera.getZenith();
-                        //camera.setZenith(0);
-                        camera.forward(deltaTrans);
-                        //camera.setZenith(zenith);
+                        colissionCamera.forward(deltaTrans);
+                        colissionCamera.forward(deltaTrans);
+                        if(!isCollision(colissionCamera.getPosition())){
+                            cameraActionWithoutZenith("forward");
+                        }else{
+                            colissionCamera.setPosition(camera.getPosition());
+                        }
+
                         break;
                     case GLFW_KEY_S:
-                        //zenith = camera.getZenith();
-                        //camera.setZenith(0);
-                        camera.backward(deltaTrans);
-                        //camera.setZenith(zenith);
+                        colissionCamera.backward(deltaTrans);
+                        colissionCamera.backward(deltaTrans);
+                        if(!isCollision(colissionCamera.getPosition())) {
+                            cameraActionWithoutZenith("back");
+                        }else{
+                            colissionCamera.setPosition(camera.getPosition());
+                        }
                         break;
                     case GLFW_KEY_A:
-                        camera.left(deltaTrans);
+                        colissionCamera.left(deltaTrans);
+                        colissionCamera.left(deltaTrans);
+                        if(!isCollision(colissionCamera.getPosition())){
+                            cameraActionWithoutZenith("left");
+                        }else{
+                            colissionCamera.setPosition(camera.getPosition());
+                        }
                         break;
                     case GLFW_KEY_D:
-                        camera.right(deltaTrans);
-                        break;
-                    case GLFW_KEY_F:
-                        glEnable(GL_FOG);
-                        break;
-                    case GLFW_KEY_G:
-                        glDisable(GL_FOG);
+                        colissionCamera.right(deltaTrans);
+                        colissionCamera.right(deltaTrans);
+                        if(!isCollision(colissionCamera.getPosition())) {
+                           cameraActionWithoutZenith("right");
+                        }else{
+                            colissionCamera.setPosition(camera.getPosition());
+                        }
                         break;
                 }
             }
@@ -137,6 +152,8 @@ public class Renderer extends AbstractRenderer {
             }
         };
     }
+
+
     @Override
     public void init() {
         super.init();
@@ -162,6 +179,7 @@ public class Renderer extends AbstractRenderer {
         camera = new GLCamera();
         camera.setPosition(new transforms.Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
         camera.setFirstPerson(true);
+        colissionCamera = new GLCamera(camera);
 
         try {
             floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
@@ -222,4 +240,33 @@ public class Renderer extends AbstractRenderer {
         textRenderer.addStr2D(3, 40, textInfo);
     }
 
+    public void cameraActionWithoutZenith(String dir){
+        zenith = camera.getZenith();
+        camera.setZenith(0);
+        switch(dir){
+            case "forward":
+                camera.forward(deltaTrans);
+                break;
+            case "back":
+                camera.backward(deltaTrans);
+                break;
+            case "left":
+                camera.left(deltaTrans);
+                break;
+            case "right":
+                camera.right(deltaTrans);
+                break;
+        }
+        camera.setZenith(zenith);
+        colissionCamera.setPosition(camera.getPosition());
+    }
+
+
+    private boolean isCollision(transforms.Vec3D position) {
+        if(position.getX() <= mg.getWidth() && position.getZ() <= mg.getHeight() && position.getX()>0)
+        if(mg.getWalls()[(int)position.getX()][(int)position.getZ()]){
+            return true;
+        }
+        return false;
+    }
 }

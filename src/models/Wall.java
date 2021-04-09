@@ -108,11 +108,4 @@ public class Wall {
 
         glDisable(GL_TEXTURE_2D);
     }
-    public boolean isColission(Vec3D camPos){
-        if((camPos.getX() == position.getX() && camPos.getZ() == position.getZ()) || (camPos.getX() == position.getX()+size && camPos.getZ() == position.getZ()) || (camPos.getX() == position.getX() && camPos.getZ() == position.getZ() +size) || (camPos.getX() == position.getX() +size && camPos.getZ() == position.getZ() +size)){
-            return true;
-        }else{
-        return false;
-        }
-    }
 }

@@ -8,6 +8,7 @@ import transforms.Point3D;
 public class Floor {
     private float size = 1;
     public Floor(Point3D position, float size, int w, int h, OGLTexture2D floorTexture){
+
         for(double i = position.getX(); i < w;i++) {
             for (double i2 = position.getZ(); i2 < h; i2++) {
                 glEnable(GL_TEXTURE_2D);
