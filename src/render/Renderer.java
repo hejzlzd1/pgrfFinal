@@ -15,6 +15,7 @@ import utils.MazeGenerator;
 import utils.MazeProcessor;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.DoubleBuffer;
 
 import static extension.global.GluUtils.gluPerspective;
@@ -62,39 +63,40 @@ public class Renderer extends AbstractRenderer {
                 }
                 switch (key) {
                     case GLFW_KEY_W:
-                        colissionCamera.forward(deltaTrans);
+                        colissionCamera.setPosition(camera.getPosition());
                         colissionCamera.forward(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())){
                             cameraActionWithoutZenith("forward");
                         }else{
+
                             colissionCamera.setPosition(camera.getPosition());
                         }
 
                         break;
                     case GLFW_KEY_S:
                         colissionCamera.backward(deltaTrans);
-                        colissionCamera.backward(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())) {
                             cameraActionWithoutZenith("back");
                         }else{
+
                             colissionCamera.setPosition(camera.getPosition());
                         }
                         break;
                     case GLFW_KEY_A:
                         colissionCamera.left(deltaTrans);
-                        colissionCamera.left(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())){
                             cameraActionWithoutZenith("left");
                         }else{
+
                             colissionCamera.setPosition(camera.getPosition());
                         }
                         break;
                     case GLFW_KEY_D:
                         colissionCamera.right(deltaTrans);
-                        colissionCamera.right(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())) {
                            cameraActionWithoutZenith("right");
                         }else{
+
                             colissionCamera.setPosition(camera.getPosition());
                         }
                         break;
@@ -263,7 +265,7 @@ public class Renderer extends AbstractRenderer {
 
 
     private boolean isCollision(transforms.Vec3D position) {
-        if(position.getX() <= mg.getWidth() && position.getZ() <= mg.getHeight() && position.getX()>0)
+        if((position.getX() < mg.getWidth() && position.getZ() < mg.getHeight() && position.getX()>=0 && position.getZ()>=0))
         if(mg.getWalls()[(int)position.getX()][(int)position.getZ()]){
             return true;
         }
