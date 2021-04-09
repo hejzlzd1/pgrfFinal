@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static extension.global.GlutUtils.glutSolidCube;
 import static extension.global.GlutUtils.glutSolidSphere;
 import static org.lwjgl.opengl.GL11.*;
 import static org.lwjgl.opengl.GL11.glPopMatrix;

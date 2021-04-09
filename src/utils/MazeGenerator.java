@@ -13,14 +13,6 @@ public class MazeGenerator {
      * Pokud podmínka platí, zahazujeme tento prvek seznamu a pokračujeme novým
      * V případě, že je soused pouze jedna "passage" - boříme zeď v daném bodě a odstraňujeme daný bod ze seznamu sousedů.
      *
-     *
-     *
-     *
-     *
-     *
-     *
-     *
-     * Implementace algoritmu převzata z Github projektu https://github.com/Indexu/Labyrinth
      * */
     public static class Node {
         int x;
@@ -71,11 +63,10 @@ public class MazeGenerator {
         return height;
     }
 
-    public void printMaze() {
-        //Outputs maze to terminal - nothing special
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                Node node = nodes[j + i * width];
+    public void printMaze() { // debug - print maze
+        for (int s = 0; s < height; s++) {
+            for (int x = 0; x < width; x++) {
+                Node node = nodes[x + s * width];
 
                 System.out.print(node.c + " ");
             }
@@ -85,68 +76,66 @@ public class MazeGenerator {
 
     private void init() {
         int i, j;
-        Node n;
+        Node b;
 
         rand = new Random();
         nodes = new Node[width * height];
 
-        // Initialize
+        // init - seznam bodu
         for (i = 0; i < width * height; i++) {
             nodes[i] = new Node();
         }
 
-        //Setup crucial nodes
+        //nastaveni bodu
         for (i = 0; i < width; i++) {
             for (j = 0; j < height; j++) {
-                n = nodes[i + j * width];
+                b = nodes[i + j * width];
                 if (i * j % 2 != 0) {
-                    n.x = i;
-                    n.y = j;
-                    n.dirs = 15; //Assume that all directions can be explored (4 youngest bits set)
-                    n.c = ' ';
+                    b.x = i;
+                    b.y = j;
+                    b.dirs = 15; //binarne vsechny smery
+                    b.c = ' ';
                 } else {
-                    n.c = '#'; //Add walls between nodes
+                    b.c = '#'; //pridani zdi mezi body
                 }
             }
         }
     }
 
     private void generate() {
-        //Setup start node
+        //nastavi startovaci bod
         Node start = nodes[1 + width];
         start.parent = start;
         Node last = start;
 
-        //Connect nodes until start node is reached and can't be left
+        //propojovani bodu dokud se nedostaneme do startovaciho bodu
         while ((last = link(last)) != start) ;
     }
 
     private Node link(Node n) {
-        //Connects node to random neighbor (if possible) and returns
-        //address of next node that should be visited
-
+        //spoji bod se svym sousedem (pokud mozno) a vrati odkaz na dalsi bod k prozkoumani
         int x = 0;
         int y = 0;
         char dir;
         Node dest;
 
-        //Nothing can be done if null pointer is given - return
+        //nelze nic delat pokud je node null - nemelo by v algoritmu nastat
         if (n == null) return null;
 
-        //While there are directions still unexplored
+        //pokud jsou neprozkoumane smery
         while (n.dirs != 0) {
-            //Randomly pick one direction
+            //Nahodny vyber promenne - viz nahodny jarnikuv algoritmus
             dir = (char) (1 << (rand.nextInt(Integer.MAX_VALUE) % 4));
 
-            //If it has already been explored - try again
+            //pokud prozkoumano - vratim se
             if ((~n.dirs & dir) != 0) continue;
 
-            //Mark direction as explored
+            //oznaceni prozkoumaneho smeru - ~ invertovani nul a jednicek v binaru - &= slouzi jako bit-AND a prirazeni hodnoty cili n.dirs = n.dirs & ~dir
             n.dirs &= ~dir;
 
-            //Depending on chosen direction
+            //rozhodovani dle smeru
             switch (dir) {
-                //Check if it's possible to go right
+                //moznost jit doprava
                 case 1:
                     if (n.x + 2 < width) {
                         x = n.x + 2;
@@ -154,7 +143,7 @@ public class MazeGenerator {
                     } else continue;
                     break;
 
-                //Check if it's possible to go down
+                //moznost jit dolu
                 case 2:
                     if (n.y + 2 < height) {
                         x = n.x;
@@ -162,7 +151,7 @@ public class MazeGenerator {
                     } else continue;
                     break;
 
-                //Check if it's possible to go left
+                //moznost jit doleva
                 case 4:
                     if (n.x - 2 >= 0) {
                         x = n.x - 2;
@@ -170,7 +159,7 @@ public class MazeGenerator {
                     } else continue;
                     break;
 
-                //Check if it's possible to go up
+                //moznost jit nahoru
                 case 8:
                     if (n.y - 2 >= 0) {
                         x = n.x;
@@ -179,26 +168,26 @@ public class MazeGenerator {
                     break;
             }
 
-            //Get destination node into pointer (makes things a tiny bit faster)
+            //cilovy bod
             dest = nodes[x + y * width];
 
-            //Make sure that destination node is not a wall
+            //pokud se nejedna o zed
             if (dest.c == ' ') {
-                //If destination is a linked node already - abort
+                //pokud je propoj - return
                 if (dest.parent != null) continue;
 
-                //Otherwise, adopt node
+                //nastavi nodu predchudce
                 dest.parent = n;
 
-                //Remove wall between nodes
+                //odstrani zed mezi nody
                 nodes[n.x + (x - n.x) / 2 + (n.y + (y - n.y) / 2) * width].c = ' ';
 
-                //Return address of the child node
+                //vraceni child node
                 return dest;
             }
         }
 
-        //If nothing more can be done here - return parent's address
+        //pokud nelze nic dalsiho provest -> vraceni k predchudci
         return n.parent;
     }
 
@@ -209,14 +198,14 @@ public class MazeGenerator {
         int startIndex;
         int maxDistance = 0;
 
-        // Randomize a start node
+        // nahodny startovni bod
         do {
             startIndex = rand.nextInt(nodes.length - 1);
             startNode = nodes[startIndex];
         }
         while (startNode.c == '#' || (startNode.x == 0 && startNode.y == 0));
 
-        // Set the endpoint to the node that is farthest away from the start node
+        // nastaveni nejvzdalenejsiho bodu v zavislosti na startovnim
         for (int i = 0; i < nodes.length - 1; i++) {
             Node node = nodes[i];
 
@@ -224,7 +213,7 @@ public class MazeGenerator {
                 continue;
             }
 
-            // Manhattan distance
+            // vypocet vzdalenosti
             int distance = Math.abs(startNode.x - node.x) + Math.abs(startNode.y - node.y);
 
             if (maxDistance < distance) {
