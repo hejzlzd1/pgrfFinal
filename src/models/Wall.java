@@ -37,10 +37,13 @@ public class Wall {
                 glVertex3d(position.getX(),position.getY()+(size)+i,position.getZ());
                 glTexCoord2f(1.0f, 0.0f);
                 glVertex3d(position.getX()+size,position.getY()+i,position.getZ());
+
+            glTexCoord2f(1.0f, 0.0f);
+            glVertex3d(position.getX()+size,(position.getY()+i),position.getZ());
+
                 glTexCoord2f(0.0f, 1.0f);
                 glVertex3d(position.getX(),position.getY()+(size)+i,position.getZ());
-                glTexCoord2f(1.0f, 0.0f);
-                glVertex3d(position.getX()+size,(position.getY()+i),position.getZ());
+
                 glTexCoord2f(1.0f, 1.0f);
                 glVertex3d(position.getX()+size,(position.getY()+(size)+i),position.getZ());
                 glEnd();
@@ -92,10 +95,12 @@ public class Wall {
             glVertex3d(position.getX(),position.getY()+(size+i),position.getZ()+size);
             glTexCoord2f(1.0f, 0.0f);
             glVertex3d(position.getX()+size,position.getY()+(i),position.getZ()+size);
-            glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(),position.getY()+(size+i),position.getZ()+size);
+
             glTexCoord2f(1.0f, 0.0f);
             glVertex3d(position.getX()+size,position.getY()+(i),position.getZ()+size);
+            glTexCoord2f(0.0f, 1.0f);
+            glVertex3d(position.getX(),position.getY()+(size+i),position.getZ()+size);
+
             glTexCoord2f(1.0f, 1.0f);
             glVertex3d(position.getX()+size,position.getY()+(size+i),position.getZ()+size);
             glEnd();
@@ -103,7 +108,6 @@ public class Wall {
 
         // uzavreni objektu - top
         wallTexture.bind();
-        glColor3f(1f,1f,1f);
         glBegin(GL_TRIANGLES); // dohromady tvori ctverec
         glTexCoord2f(0.0f, 0.0f);
         glVertex3d(position.getX(), position.getY()+(size+height), position.getZ());

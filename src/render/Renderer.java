@@ -3,7 +3,6 @@ package render;
 import extension.global.AbstractRenderer;
 import extension.global.GLCamera;
 import models.Floor;
-import models.Skybox;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -26,10 +25,11 @@ public class Renderer extends AbstractRenderer {
     private float zenit, azimut;
     private lwjglutils.OGLTexture2D floorTexture;
     private lwjglutils.OGLTexture2D wallTexture;
+    private lwjglutils.OGLTexture2D scoreTexture;
     private double zenith;
     private GLCamera camera;
-    private GLCamera colissionCamera;
     private MazeGenerator mg;
+    private boolean gameEnded = true;
     private float deltaTrans = 0;
     private boolean mouseButton1 = false;
 
@@ -61,45 +61,32 @@ public class Renderer extends AbstractRenderer {
                 }
                 switch (key) {
                     case GLFW_KEY_W:
-                        colissionCamera.setPosition(camera.getPosition());
-                        colissionCamera.forward(deltaTrans);
-                        if(!isCollision(colissionCamera.getPosition())){
-                            cameraActionWithoutZenith("forward");
+                        if(gameEnded){
+                            cameraAction("forward");
                         }else{
-                            colissionCamera.setPosition(camera.getPosition());
+                            camera.forward(deltaTrans+0.2);
                         }
-
                         break;
                     case GLFW_KEY_S:
-                        colissionCamera.setPosition(camera.getPosition());
-                        colissionCamera.backward(deltaTrans);
-                        if(!isCollision(colissionCamera.getPosition())) {
-                            cameraActionWithoutZenith("back");
+                        if(gameEnded) {
+                            cameraAction("back");
                         }else{
-
-                            colissionCamera.setPosition(camera.getPosition());
-                        }
+                                camera.backward(deltaTrans+0.2);
+                            }
                         break;
                     case GLFW_KEY_A:
-                        colissionCamera.setPosition(camera.getPosition());
-                        colissionCamera.left(deltaTrans);
-                        if(!isCollision(colissionCamera.getPosition())){
-                            cameraActionWithoutZenith("left");
+                        if(gameEnded){
+                            cameraAction("left");
                         }else{
-
-                            colissionCamera.setPosition(camera.getPosition());
-                        }
+                             camera.left(deltaTrans+0.2);
+                         }
                         break;
                     case GLFW_KEY_D:
-                        colissionCamera.setPosition(camera.getPosition());
-                        colissionCamera.right(deltaTrans);
-                        if(!isCollision(colissionCamera.getPosition())) {
-                           cameraActionWithoutZenith("right");
+                        if(gameEnded) {
+                            cameraAction("right");
                         }else{
-
-                            colissionCamera.setPosition(camera.getPosition());
+                            camera.right(deltaTrans+0.2);
                         }
-                        break;
                 }
             }
         };
@@ -162,18 +149,8 @@ public class Renderer extends AbstractRenderer {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         glEnable(GL_DEPTH_TEST);
-        glPolygonMode(GL_FRONT, GL_FILL);
-        glPolygonMode(GL_BACK, GL_NONE);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-        Skybox sb = new Skybox();
-        sb.loadSkybox();
 
         mg = new MazeGenerator();
         mg.generateMaze(50);
@@ -181,11 +158,11 @@ public class Renderer extends AbstractRenderer {
         camera = new GLCamera();
         camera.setPosition(new transforms.Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
         camera.setFirstPerson(true);
-        colissionCamera = new GLCamera(camera);
 
         try {
             floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
             wallTexture = new lwjglutils.OGLTexture2D("textures/wall.jpg");
+            scoreTexture = new lwjglutils.OGLTexture2D("textures/score.jpg");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -216,53 +193,57 @@ public class Renderer extends AbstractRenderer {
 
         glPushMatrix();
         camera.setMatrix();
-        glCallList(1);
-        glPopMatrix();
-
-
-        glPushMatrix();
-        camera.setMatrix();
         MazeProcessor.createWalls(mg.getWalls(),wallTexture);
         glPopMatrix();
 
+        glPushMatrix();
+        camera.setMatrix();
+        MazeProcessor.createScore(mg.getWalls(),15,scoreTexture);
+        glPopMatrix();
 
         glPushMatrix();
         camera.setMatrix();
-        new Floor(new Point3D(0,0,0),1f,mg.getWidth(),mg.getHeight(),floorTexture); //maze width/height
+        new Floor(new Point3D(0,0,0),1f,mg.getWidth()+1,mg.getHeight()+1,floorTexture); //maze width/height
         glPopMatrix();
-
 
         String textInfo = "position " + camera.getPosition().toString();
         textRenderer.addStr2D(3, 40, textInfo);
     }
 
-    public void cameraActionWithoutZenith(String dir){
+    public void cameraAction(String dir) {
         zenith = camera.getZenith();
-        camera.setZenith(0);
+        setCameraWithoutZenith(dir, camera);
+        camera.setZenith(zenith);
+    }
+
+    private void setCameraWithoutZenith(String dir, GLCamera cam) {
+        cam.setZenith(0);
         switch(dir){
             case "forward":
-                camera.forward(deltaTrans);
+                cam.forward(deltaTrans);
+                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
+                    cam.backward(deltaTrans);
+                }
                 break;
             case "back":
-                camera.backward(deltaTrans);
+                cam.backward(deltaTrans);
+                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
+                    cam.forward(deltaTrans);
+                }
                 break;
             case "left":
-                camera.left(deltaTrans);
+                cam.left(deltaTrans);
+                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
+                    cam.right(deltaTrans);
+                }
                 break;
             case "right":
-                camera.right(deltaTrans);
+                cam.right(deltaTrans);
+                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
+                    cam.left(deltaTrans);
+                }
                 break;
         }
-        camera.setZenith(zenith);
-        colissionCamera.setPosition(camera.getPosition());
     }
 
-
-    private boolean isCollision(transforms.Vec3D position) {
-        if((position.getX() < mg.getWidth() && position.getZ() < mg.getHeight() && position.getX()>=0 && position.getZ()>=0))
-        if(mg.getWalls()[(int)position.getX()][(int)position.getZ()]){
-            return true;
-        }
-        return false;
-    }
 }
