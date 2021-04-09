@@ -4,7 +4,6 @@ import extension.global.AbstractRenderer;
 import extension.global.GLCamera;
 import models.Floor;
 import models.Skybox;
-import models.Wall;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -15,7 +14,6 @@ import utils.MazeGenerator;
 import utils.MazeProcessor;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.DoubleBuffer;
 
 import static extension.global.GluUtils.gluPerspective;
@@ -68,12 +66,12 @@ public class Renderer extends AbstractRenderer {
                         if(!isCollision(colissionCamera.getPosition())){
                             cameraActionWithoutZenith("forward");
                         }else{
-
                             colissionCamera.setPosition(camera.getPosition());
                         }
 
                         break;
                     case GLFW_KEY_S:
+                        colissionCamera.setPosition(camera.getPosition());
                         colissionCamera.backward(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())) {
                             cameraActionWithoutZenith("back");
@@ -83,6 +81,7 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_A:
+                        colissionCamera.setPosition(camera.getPosition());
                         colissionCamera.left(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())){
                             cameraActionWithoutZenith("left");
@@ -92,6 +91,7 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_D:
+                        colissionCamera.setPosition(camera.getPosition());
                         colissionCamera.right(deltaTrans);
                         if(!isCollision(colissionCamera.getPosition())) {
                            cameraActionWithoutZenith("right");
@@ -209,9 +209,7 @@ public class Renderer extends AbstractRenderer {
         glFogf(GL_FOG_DENSITY, 0.08f);
         glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
 
-        gluPerspective(45, width / (float) height, 0.1f, 500.0f);
-        GLCamera cameraSky = new GLCamera(camera);
-        cameraSky.setPosition(new transforms.Vec3D());
+        gluPerspective(45, width / (float) height, 0.01f, 500.0f);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
@@ -220,10 +218,6 @@ public class Renderer extends AbstractRenderer {
         camera.setMatrix();
         glCallList(1);
         glPopMatrix();
-
-        glPushMatrix();
-        cameraSky.setMatrix();
-        glCallList(2);
 
 
         glPushMatrix();
