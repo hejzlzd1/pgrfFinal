@@ -26,11 +26,12 @@ public class Wall {
 
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+        //TODO: CULLING - rotate triangles
 
         for(int i = 0; i <= height;i++){
                 wallTexture.bind();
                 glBegin(GL_TRIANGLES); // front side
-                glColor3f(1f,0.5f,0f);
+                glColor3f(1f,0.55f,0f);
                 glTexCoord2f(0.0f, 0.0f);
                 glVertex3d(position.getX(),position.getY()+i,position.getZ());
                 glTexCoord2f(0.0f, 1.0f);

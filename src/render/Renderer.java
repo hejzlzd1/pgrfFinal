@@ -13,6 +13,9 @@ import transforms.Point3D;
 import utils.MazeGenerator;
 import utils.MazeProcessor;
 
+import javax.sound.sampled.AudioSystem;
+import javax.sound.sampled.Clip;
+import java.io.File;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
 
@@ -290,8 +293,22 @@ public class Renderer extends AbstractRenderer {
             if(sc.checkPositionWithCam(cam)){
                 collectedScore++;
                 MazeProcessor.getScoreList().remove(sc);
+                makeSound("res/sounds/scorePickup.wav");
                 break;
             }
+        }
+    }
+
+    public void makeSound(String sound){
+        File soundFile = new File(sound);
+
+
+        try{
+            Clip clip = AudioSystem.getClip();
+            clip.open(AudioSystem.getAudioInputStream(soundFile));
+            clip.start();
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 
