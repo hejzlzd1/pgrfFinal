@@ -15,6 +15,9 @@ import static org.lwjgl.opengl.GL11.glPopMatrix;
 
 
 public class MazeProcessor {
+    public static void setScoreList(List<Score> scoreList) {
+        MazeProcessor.scoreList = scoreList;
+    }
     private static List<Score> scoreList = new ArrayList<>();
     public static List<Score> getScoreList() {
         return scoreList;
@@ -32,15 +35,10 @@ public class MazeProcessor {
                 }
             }
         }
-        for(int i = 0; i <= walls.length; i++){
-            new Wall(new Point3D(i,0, walls.length),1,wallTexture);
-        }
-        for(int j = 0; j <= walls.length; j++){
-            new Wall(new Point3D(walls.length,0, j),1,wallTexture);
-        }
     }
-    public static void createScore(boolean[][] walls, int maxScore, OGLTexture2D scoreTexture){
-        if(scoreList.isEmpty()){
+
+    public static void createScore(boolean[][] walls, int maxScore, OGLTexture2D scoreTexture,boolean generated){
+        if(!generated){
         scoreList = new ArrayList<>();
         Random rnd = new Random();
         while(scoreList.size() <= maxScore){
@@ -49,7 +47,11 @@ public class MazeProcessor {
             if(!walls[x][z]){
                 boolean scoreIsThere = false;
                 for(Score sc : scoreList){
-                    if(sc.getPosition().getX() == x && sc.getPosition().getZ() == z) scoreIsThere=true;
+                    if(sc.getPosition().getX() == x && sc.getPosition().getZ() == z)
+                    {
+                        scoreIsThere=true;
+                        break; // optimalizace -> vyskocit z cyklu pokud je na danem bode score, zbytecne pokracovat
+                    }
                 }
                 if(!scoreIsThere) scoreList.add(new Score(new Point3D(x+0.5,1,z+0.5),0.2f));
             }

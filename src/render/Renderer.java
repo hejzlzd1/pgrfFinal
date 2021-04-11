@@ -3,6 +3,7 @@ package render;
 import extension.global.AbstractRenderer;
 import extension.global.GLCamera;
 import models.Floor;
+import models.Score;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
 import org.lwjgl.glfw.GLFWKeyCallback;
@@ -26,12 +27,16 @@ public class Renderer extends AbstractRenderer {
     private lwjglutils.OGLTexture2D floorTexture;
     private lwjglutils.OGLTexture2D wallTexture;
     private lwjglutils.OGLTexture2D scoreTexture;
+    private int collectedScore;
+    private int maxScoreGenerated;
     private double zenith;
     private GLCamera camera;
     private MazeGenerator mg;
-    private boolean gameEnded = true;
+    private boolean gameEnded;
+    private boolean flightMode;
     private float deltaTrans = 0;
     private boolean mouseButton1 = false;
+    private boolean firstCycle = false;
 
     public Renderer() {
         super();
@@ -44,49 +49,68 @@ public class Renderer extends AbstractRenderer {
                 if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
                     // We will detect this in our rendering loop
                     glfwSetWindowShouldClose(window, true);
-                if (action == GLFW_RELEASE) {
-                    deltaTrans = 0;
-                }
 
                 if (action == GLFW_PRESS) {
                     switch (key) {
-
-                        case GLFW_KEY_W:
-                        case GLFW_KEY_S:
-                        case GLFW_KEY_A:
-                        case GLFW_KEY_D:
+                        case GLFW_KEY_W,GLFW_KEY_D,GLFW_KEY_S,GLFW_KEY_A:
                             deltaTrans = 0.1f;
                             break;
+                        case GLFW_KEY_M:
+                            if(flightMode){
+                                camera.setPosition(camera.getPosition().withY(1.5));
+                            }
+                            flightMode = !flightMode;
+                            break;
+                        case GLFW_KEY_F1: //debug mode
+                            gameEnded = !gameEnded;
+                            glDisable(GL_FOG);
+                    break;
                     }
                 }
                 switch (key) {
                     case GLFW_KEY_W:
-                        if(gameEnded){
-                            cameraAction("forward");
-                        }else{
-                            camera.forward(deltaTrans+0.2);
+                        if(!flightMode) {
+                            if (!gameEnded) {
+                                cameraAction("forward");
+                            } else {
+                                camera.forward(deltaTrans + 0.1);
+                            }
                         }
                         break;
                     case GLFW_KEY_S:
-                        if(gameEnded) {
-                            cameraAction("back");
-                        }else{
-                                camera.backward(deltaTrans+0.2);
+                        if(!flightMode) {
+                            if (!gameEnded) {
+                                cameraAction("back");
+                            } else {
+                                camera.backward(deltaTrans + 0.1);
                             }
+                        }
                         break;
                     case GLFW_KEY_A:
-                        if(gameEnded){
-                            cameraAction("left");
-                        }else{
-                             camera.left(deltaTrans+0.2);
-                         }
+                        if(!flightMode) {
+                            if (!gameEnded) {
+                                cameraAction("left");
+                            } else {
+                                camera.left(deltaTrans + 0.1);
+                            }
+                        }
                         break;
                     case GLFW_KEY_D:
-                        if(gameEnded) {
-                            cameraAction("right");
-                        }else{
-                            camera.right(deltaTrans+0.2);
+                        if(!flightMode) {
+                            if (!gameEnded) {
+                                cameraAction("right");
+                            } else {
+                                camera.right(deltaTrans + 0.1);
+                            }
                         }
+                        break;
+                    case GLFW_KEY_R:
+                        if(flightMode && camera.getPosition().getY() < 10) camera.setPosition(camera.getPosition().withY(camera.getPosition().getY()+deltaTrans));
+                        break;
+                    case GLFW_KEY_F:
+                        if(flightMode && camera.getPosition().getY() > 1.4) camera.down(deltaTrans);
+                        break;
+
                 }
             }
         };
@@ -148,12 +172,26 @@ public class Renderer extends AbstractRenderer {
         super.init();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
+        glEnable(GL_FOG);
+        glFogi(GL_FOG_MODE, GL_LINEAR);
+        glFogi(GL_FOG_START, (int) 0f);
+        glFogi(GL_FOG_END, (int) 10f);
+        glFogf(GL_FOG_DENSITY, 0.08f);
+        glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
+
+
+        deltaTrans = 0.1f;
+        gameEnded = false;
+        flightMode = false;
         glEnable(GL_DEPTH_TEST);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
         mg = new MazeGenerator();
         mg.generateMaze(50);
+
+        maxScoreGenerated = 15;
+        collectedScore = 0;
 
         camera = new GLCamera();
         camera.setPosition(new transforms.Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
@@ -179,13 +217,6 @@ public class Renderer extends AbstractRenderer {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        glEnable(GL_FOG);
-        glFogi(GL_FOG_MODE, GL_LINEAR);
-        glFogi(GL_FOG_START, (int) 0f);
-        glFogi(GL_FOG_END, (int) 10f);
-        glFogf(GL_FOG_DENSITY, 0.08f);
-        glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
-
         gluPerspective(45, width / (float) height, 0.01f, 500.0f);
 
         glMatrixMode(GL_MODELVIEW);
@@ -198,7 +229,7 @@ public class Renderer extends AbstractRenderer {
 
         glPushMatrix();
         camera.setMatrix();
-        MazeProcessor.createScore(mg.getWalls(),15,scoreTexture);
+        MazeProcessor.createScore(mg.getWalls(),maxScoreGenerated,scoreTexture,firstCycle);
         glPopMatrix();
 
         glPushMatrix();
@@ -206,6 +237,10 @@ public class Renderer extends AbstractRenderer {
         new Floor(new Point3D(0,0,0),1f,mg.getWidth()+1,mg.getHeight()+1,floorTexture); //maze width/height
         glPopMatrix();
 
+
+        firstCycle = true;
+        String scoreInfo = "Posbírané scóre: " + collectedScore + " | Max: " + maxScoreGenerated + " | Létání: " +flightMode;
+        textRenderer.addStr2D(3, 20, scoreInfo);
         String textInfo = "position " + camera.getPosition().toString();
         textRenderer.addStr2D(3, 40, textInfo);
     }
@@ -221,28 +256,42 @@ public class Renderer extends AbstractRenderer {
         switch(dir){
             case "forward":
                 cam.forward(deltaTrans);
+                if(cam.getPosition().getX() >= mg.getWidth() && cam.getPosition().getZ() >= mg.getWidth()){
+
+                }
                 if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.backward(deltaTrans);
+                    cam.backward(deltaTrans);cam.backward(deltaTrans);
                 }
                 break;
             case "back":
                 cam.backward(deltaTrans);
                 if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.forward(deltaTrans);
+                    cam.forward(deltaTrans);cam.forward(deltaTrans);
                 }
                 break;
             case "left":
                 cam.left(deltaTrans);
                 if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.right(deltaTrans);
+                    cam.right(deltaTrans);cam.right(deltaTrans);
                 }
                 break;
             case "right":
                 cam.right(deltaTrans);
                 if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.left(deltaTrans);
+                    cam.left(deltaTrans);cam.left(deltaTrans);
                 }
                 break;
+        }
+        checkForScore(cam);
+    }
+
+    private void checkForScore(GLCamera cam) {
+        for(Score sc : MazeProcessor.getScoreList()){
+            if(sc.checkPositionWithCam(cam)){
+                collectedScore++;
+                MazeProcessor.getScoreList().remove(sc);
+                break;
+            }
         }
     }
 

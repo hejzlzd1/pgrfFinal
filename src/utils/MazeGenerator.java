@@ -209,7 +209,7 @@ public class MazeGenerator {
         for (int i = 0; i < nodes.length - 1; i++) {
             Node node = nodes[i];
 
-            if (node.c == '#' || (node.x == 0 && node.y == 0) || i == startIndex) {
+            if (node.c == '#' || (node.x == 0 && node.y == 0) || i == startIndex || (node.x == width && node.y == height)) {
                 continue;
             }
 
@@ -230,12 +230,18 @@ public class MazeGenerator {
     }
 
     private void setWalls() {
-        walls = new boolean[width][height];
+        walls = new boolean[width+1][height+1];
 
         for (int i = 0; i < height; i++) {
             for (int j = 0; j < width; j++) {
                 walls[i][j] = nodes[j + i * width].c == '#';
             }
+        }
+        for (int i = 0; i <= height; i++) {
+            walls[i][width] = true;
+        }
+        for (int j = 0; j <= width; j++) {
+            walls[height][j] = true;
         }
     }
 
