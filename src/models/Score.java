@@ -1,4 +1,5 @@
 package models;
+
 import extension.global.GLCamera;
 import transforms.Point3D;
 
@@ -26,7 +27,8 @@ public class Score {
         this.position = position;
         this.size = size;
     }
-    public boolean checkPositionWithCam(GLCamera cam){
-        return ((cam.getPosition().getX() >= position.getX()-0.5 && cam.getPosition().getX() <= position.getX() + 0.5) && (cam.getPosition().getZ() >= position.getZ()-0.5 && cam.getPosition().getZ() <= position.getZ()+0.5));
+
+    public boolean checkPositionWithCam(GLCamera cam) {
+        return ((cam.getPosition().getX() >= position.getX() - 0.5 && cam.getPosition().getX() <= position.getX() + 0.5) && (cam.getPosition().getZ() >= position.getZ() - 0.5 && cam.getPosition().getZ() <= position.getZ() + 0.5));
     }
 }

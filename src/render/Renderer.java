@@ -18,15 +18,14 @@ import utils.MazeProcessor;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.swing.*;
-import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.DoubleBuffer;
 import java.util.Random;
 
 import static extension.global.GluUtils.gluPerspective;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL11.GL_LINEAR;
 
 public class Renderer extends AbstractRenderer {
     private float dx, dy, ox, oy;
@@ -65,11 +64,11 @@ public class Renderer extends AbstractRenderer {
 
                 if (action == GLFW_PRESS) {
                     switch (key) {
-                        case GLFW_KEY_W,GLFW_KEY_D,GLFW_KEY_S,GLFW_KEY_A:
+                        case GLFW_KEY_W, GLFW_KEY_D, GLFW_KEY_S, GLFW_KEY_A:
                             deltaTrans = 0.1f;
                             break;
                         case GLFW_KEY_M:
-                            if(flightMode){
+                            if (flightMode) {
                                 camera.setPosition(camera.getPosition().withY(1.5));
                             }
                             flightMode = !flightMode;
@@ -77,10 +76,10 @@ public class Renderer extends AbstractRenderer {
                         case GLFW_KEY_F1: //debug mode
                             gameEnded = !gameEnded;
                             glDisable(GL_FOG);
-                            camera.setPosition(new Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
+                            camera.setPosition(new Vec3D(mg.getStart().getX() + 0.5, 1.5, mg.getStart().getZ() + 0.5));
                             break;
                         case GLFW_KEY_H:
-                            JOptionPane.showMessageDialog(null,"H - Toto okno \n WSAD - Pohyb \n M - Přepínání mezi pohybem a levitací pohledem \n R - Let nahoru \n F - Let dolu \n C - reset \n F1 - debug mód (dočasné - zpřístupní mód po dokončení labyrintu)");
+                            JOptionPane.showMessageDialog(null, "H - Toto okno \n WSAD - Pohyb \n M - Přepínání mezi pohybem a levitací pohledem \n R - Let nahoru \n F - Let dolu \n C - reset \n F1 - debug mód (dočasné - zpřístupní mód po dokončení labyrintu)");
                             break;
                         case GLFW_KEY_C:
                             init();
@@ -89,7 +88,7 @@ public class Renderer extends AbstractRenderer {
                 }
                 switch (key) {
                     case GLFW_KEY_W:
-                        if(!flightMode) {
+                        if (!flightMode) {
                             if (!gameEnded) {
                                 cameraAction("forward");
                             } else {
@@ -98,7 +97,7 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_S:
-                        if(!flightMode) {
+                        if (!flightMode) {
                             if (!gameEnded) {
                                 cameraAction("back");
                             } else {
@@ -107,7 +106,7 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_A:
-                        if(!flightMode) {
+                        if (!flightMode) {
                             if (!gameEnded) {
                                 cameraAction("left");
                             } else {
@@ -116,7 +115,7 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_D:
-                        if(!flightMode) {
+                        if (!flightMode) {
                             if (!gameEnded) {
                                 cameraAction("right");
                             } else {
@@ -125,10 +124,11 @@ public class Renderer extends AbstractRenderer {
                         }
                         break;
                     case GLFW_KEY_R:
-                        if(flightMode && camera.getPosition().getY() < 10) camera.setPosition(camera.getPosition().withY(camera.getPosition().getY()+deltaTrans));
+                        if (flightMode && camera.getPosition().getY() < 10)
+                            camera.setPosition(camera.getPosition().withY(camera.getPosition().getY() + deltaTrans));
                         break;
                     case GLFW_KEY_F:
-                        if(flightMode && camera.getPosition().getY() > 1.4) camera.down(deltaTrans);
+                        if (flightMode && camera.getPosition().getY() > 1.4) camera.down(deltaTrans);
                         break;
 
                 }
@@ -210,18 +210,18 @@ public class Renderer extends AbstractRenderer {
         glLoadIdentity();
 
         mg = new MazeGenerator();
-        if(mazeSize == -1){
-            mazeSize = new Random().nextInt(40+1-10)+10;
+        if (mazeSize == -1) {
+            mazeSize = new Random().nextInt(40 + 1 - 10) + 10;
         }
 
         mg.generateMaze(mazeSize);
         firstCycle = false;
 
-        maxScoreGenerated = new Random().nextInt(mazeSize+1-1)+1;
+        maxScoreGenerated = new Random().nextInt(mazeSize + 1 - 1) + 1;
         collectedScore = 0;
 
         camera = new GLCamera();
-        camera.setPosition(new transforms.Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
+        camera.setPosition(new transforms.Vec3D(mg.getStart().getX() + 0.5, 1.5, mg.getStart().getZ() + 0.5));
         camera.setFirstPerson(true);
 
         try {
@@ -236,7 +236,6 @@ public class Renderer extends AbstractRenderer {
     }
 
 
-
     @Override
     public void display() {
         glViewport(0, 0, width, height);
@@ -248,47 +247,47 @@ public class Renderer extends AbstractRenderer {
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
 
-        gluPerspective(45, width / (float) height, 0.01f, 500.0f);
+        gluPerspective(70, width / (float) height, 0.01f, 500.0f);
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
         glPushMatrix();
         camera.setMatrix();
-        MazeProcessor.createWalls(mg.getWalls(),wallTexture);
+        MazeProcessor.createWalls(mg.getWalls(), wallTexture);
         glPopMatrix();
 
         glPushMatrix();
         camera.setMatrix();
-        MazeProcessor.createScore(mg.getWalls(),maxScoreGenerated,scoreTexture,firstCycle);
+        MazeProcessor.createScore(mg.getWalls(), maxScoreGenerated, scoreTexture, firstCycle);
         glPopMatrix();
 
         glPushMatrix();
         camera.setMatrix();
-        new Floor(new Point3D(0,0,0),1f,mg.getWidth()+1,mg.getHeight()+1,floorTexture); //maze width/height
+        new Floor(new Point3D(0, 0, 0), 1f, mg.getWidth() + 1, mg.getHeight() + 1, floorTexture); //maze width/height
         glPopMatrix();
 
         glPushMatrix();
         camera.setMatrix();
-        new FloorPoints(mg.getStart(),startTexture);
-        endPoint = new FloorPoints(mg.getEnd(),endTexture);
+        new FloorPoints(mg.getStart(), startTexture);
+        endPoint = new FloorPoints(mg.getEnd(), endTexture);
         glPopMatrix();
 
 
         firstCycle = true;
-        if(!gameEnded) {
-            if(collectedScore != maxScoreGenerated) {
+        if (!gameEnded) {
+            if (collectedScore != maxScoreGenerated) {
                 scoreInfo = "Posbirane score: " + collectedScore + " | Max: " + maxScoreGenerated + " | Letani: " + flightMode;
-            }else{
+            } else {
                 scoreInfo = "Byl otevren vychod! Souřadnice X " + mg.getEnd().getX() + ", Z " + mg.getEnd().getZ() + " | Tvé souřadnice: X " + camera.getPosition().getX() +
-            ", Z " + camera.getPosition().getZ();
+                        ", Z " + camera.getPosition().getZ();
             }
-        }else{
-             scoreInfo = "Dohrano, dostal jsi debug mod";
+        } else {
+            scoreInfo = "Dohrano, dostal jsi debug mod";
         }
         textRenderer.addStr2D(3, 20, scoreInfo);
         String helpInfo = "Stiskni H pro dialogove okno s napovedou.";
-        textRenderer.addStr2D(5, height-5, helpInfo);
+        textRenderer.addStr2D(5, height - 5, helpInfo);
     }
 
     public void cameraAction(String dir) {
@@ -299,29 +298,33 @@ public class Renderer extends AbstractRenderer {
 
     private void setCameraWithoutZenith(String dir, GLCamera cam) {
         cam.setZenith(0);
-        switch(dir){
+        switch (dir) {
             case "forward":
                 cam.forward(deltaTrans);
-                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.backward(deltaTrans);cam.backward(deltaTrans);
+                if (mg.getWalls()[(int) cam.getPosition().getX()][(int) cam.getPosition().getZ()]) {
+                    cam.backward(deltaTrans);
+                    cam.backward(deltaTrans);
                 }
                 break;
             case "back":
                 cam.backward(deltaTrans);
-                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.forward(deltaTrans);cam.forward(deltaTrans);
+                if (mg.getWalls()[(int) cam.getPosition().getX()][(int) cam.getPosition().getZ()]) {
+                    cam.forward(deltaTrans);
+                    cam.forward(deltaTrans);
                 }
                 break;
             case "left":
                 cam.left(deltaTrans);
-                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.right(deltaTrans);cam.right(deltaTrans);
+                if (mg.getWalls()[(int) cam.getPosition().getX()][(int) cam.getPosition().getZ()]) {
+                    cam.right(deltaTrans);
+                    cam.right(deltaTrans);
                 }
                 break;
             case "right":
                 cam.right(deltaTrans);
-                if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
-                    cam.left(deltaTrans);cam.left(deltaTrans);
+                if (mg.getWalls()[(int) cam.getPosition().getX()][(int) cam.getPosition().getZ()]) {
+                    cam.left(deltaTrans);
+                    cam.left(deltaTrans);
                 }
                 break;
         }
@@ -330,31 +333,31 @@ public class Renderer extends AbstractRenderer {
     }
 
     private void checkForEnd(GLCamera cam) {
-        if(endPoint.checkPositionWithCam(cam) && collectedScore == maxScoreGenerated){
-            makeSound("res/sounds/winner.wav");
+        if (endPoint.checkPositionWithCam(cam) && collectedScore == maxScoreGenerated) {
+            makeSound(this.getClass().getResource("/sounds/winner.wav"));
             gameEnded = true;
             glDisable(GL_FOG);
         }
     }
 
     private void checkForScore(GLCamera cam) {
-        for(Score sc : MazeProcessor.getScoreList()){
-            if(sc.checkPositionWithCam(cam)){
+        for (Score sc : MazeProcessor.getScoreList()) {
+            if (sc.checkPositionWithCam(cam)) {
                 collectedScore++;
                 MazeProcessor.getScoreList().remove(sc);
-                makeSound("res/sounds/scorePickup.wav");
+                makeSound(this.getClass().getResource("/sounds/scorePickup.wav"));
                 break;
             }
         }
     }
 
-    public void makeSound(String sound){
-        File soundFile = new File(sound);
-        try{
+    public void makeSound(URL sound) {
+        System.out.println(sound);
+        try {
             Clip clip = AudioSystem.getClip();
-            clip.open(AudioSystem.getAudioInputStream(soundFile));
+            clip.open(AudioSystem.getAudioInputStream(sound));
             clip.start();
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -365,20 +368,20 @@ public class Renderer extends AbstractRenderer {
                 "Chceš nagenerovat náhodnou velikost bludiště?",
                 "Nastavení bludiště",
                 JOptionPane.YES_NO_OPTION);
-        if(n == JOptionPane.YES_OPTION) {
+        if (n == JOptionPane.YES_OPTION) {
             mazeSize = -1;
-        }else {
+        } else {
             String s = (String) JOptionPane.showInputDialog(null, "Zvol velikost bludiště v intervalu 10-40", "Nastavení bludiště", JOptionPane.QUESTION_MESSAGE);
-            try{
+            try {
                 mazeSize = Integer.parseInt(s);
-                if(mazeSize >= 10 && mazeSize <= 40){
+                if (mazeSize >= 10 && mazeSize <= 40) {
                     return;
-                }else{
-                    JOptionPane.showMessageDialog(null,"Je potřeba zvolit číslo v rozsahu!");
+                } else {
+                    JOptionPane.showMessageDialog(null, "Je potřeba zvolit číslo v rozsahu!");
                     settings();
                 }
-            }catch (Exception e){
-                JOptionPane.showMessageDialog(null,"Je potřeba zvolit platné číslo!");
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(null, "Je potřeba zvolit platné číslo!");
                 settings();
             }
         }
