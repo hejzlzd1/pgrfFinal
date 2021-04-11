@@ -3,6 +3,7 @@ package render;
 import extension.global.AbstractRenderer;
 import extension.global.GLCamera;
 import models.Floor;
+import models.FloorPoints;
 import models.Score;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.glfw.GLFWCursorPosCallback;
@@ -10,14 +11,17 @@ import org.lwjgl.glfw.GLFWKeyCallback;
 import org.lwjgl.glfw.GLFWMouseButtonCallback;
 import org.lwjgl.glfw.GLFWScrollCallback;
 import transforms.Point3D;
+import transforms.Vec3D;
 import utils.MazeGenerator;
 import utils.MazeProcessor;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.DoubleBuffer;
+import java.util.Random;
 
 import static extension.global.GluUtils.gluPerspective;
 import static org.lwjgl.glfw.GLFW.*;
@@ -30,6 +34,8 @@ public class Renderer extends AbstractRenderer {
     private lwjglutils.OGLTexture2D floorTexture;
     private lwjglutils.OGLTexture2D wallTexture;
     private lwjglutils.OGLTexture2D scoreTexture;
+    private lwjglutils.OGLTexture2D startTexture;
+    private lwjglutils.OGLTexture2D endTexture;
     private int collectedScore;
     private int maxScoreGenerated;
     private double zenith;
@@ -39,7 +45,11 @@ public class Renderer extends AbstractRenderer {
     private boolean flightMode;
     private float deltaTrans = 0;
     private boolean mouseButton1 = false;
-    private boolean firstCycle = false;
+    private boolean firstCycle;
+    private String scoreInfo;
+    private int mazeSize = 20;
+    private FloorPoints endPoint;
+
 
     public Renderer() {
         super();
@@ -67,7 +77,14 @@ public class Renderer extends AbstractRenderer {
                         case GLFW_KEY_F1: //debug mode
                             gameEnded = !gameEnded;
                             glDisable(GL_FOG);
-                    break;
+                            camera.setPosition(new Vec3D(mg.getStart().getX()+0.5,1.5,mg.getStart().getZ()+0.5));
+                            break;
+                        case GLFW_KEY_H:
+                            JOptionPane.showMessageDialog(null,"H - Toto okno \n WSAD - Pohyb \n M - Přepínání mezi pohybem a levitací pohledem \n R - Let nahoru \n F - Let dolu \n C - reset \n F1 - debug mód (dočasné - zpřístupní mód po dokončení labyrintu)");
+                            break;
+                        case GLFW_KEY_C:
+                            init();
+                            break;
                     }
                 }
                 switch (key) {
@@ -173,6 +190,8 @@ public class Renderer extends AbstractRenderer {
     @Override
     public void init() {
         super.init();
+        settings();
+
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         glEnable(GL_FOG);
@@ -191,9 +210,14 @@ public class Renderer extends AbstractRenderer {
         glLoadIdentity();
 
         mg = new MazeGenerator();
-        mg.generateMaze(50);
+        if(mazeSize == -1){
+            mazeSize = new Random().nextInt(40+1-10)+10;
+        }
 
-        maxScoreGenerated = 15;
+        mg.generateMaze(mazeSize);
+        firstCycle = false;
+
+        maxScoreGenerated = new Random().nextInt(mazeSize+1-1)+1;
         collectedScore = 0;
 
         camera = new GLCamera();
@@ -204,10 +228,14 @@ public class Renderer extends AbstractRenderer {
             floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
             wallTexture = new lwjglutils.OGLTexture2D("textures/wall.jpg");
             scoreTexture = new lwjglutils.OGLTexture2D("textures/score.jpg");
+            endTexture = new lwjglutils.OGLTexture2D("textures/endHole.png");
+            startTexture = new lwjglutils.OGLTexture2D("textures/start.png");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+
 
     @Override
     public void display() {
@@ -240,12 +268,27 @@ public class Renderer extends AbstractRenderer {
         new Floor(new Point3D(0,0,0),1f,mg.getWidth()+1,mg.getHeight()+1,floorTexture); //maze width/height
         glPopMatrix();
 
+        glPushMatrix();
+        camera.setMatrix();
+        new FloorPoints(mg.getStart(),startTexture);
+        endPoint = new FloorPoints(mg.getEnd(),endTexture);
+        glPopMatrix();
+
 
         firstCycle = true;
-        String scoreInfo = "Posbírané scóre: " + collectedScore + " | Max: " + maxScoreGenerated + " | Létání: " +flightMode;
+        if(!gameEnded) {
+            if(collectedScore != maxScoreGenerated) {
+                scoreInfo = "Posbirane score: " + collectedScore + " | Max: " + maxScoreGenerated + " | Letani: " + flightMode;
+            }else{
+                scoreInfo = "Byl otevren vychod! Souřadnice X " + mg.getEnd().getX() + ", Z " + mg.getEnd().getZ() + " | Tvé souřadnice: X " + camera.getPosition().getX() +
+            ", Z " + camera.getPosition().getZ();
+            }
+        }else{
+             scoreInfo = "Dohrano, dostal jsi debug mod";
+        }
         textRenderer.addStr2D(3, 20, scoreInfo);
-        String textInfo = "position " + camera.getPosition().toString();
-        textRenderer.addStr2D(3, 40, textInfo);
+        String helpInfo = "Stiskni H pro dialogove okno s napovedou.";
+        textRenderer.addStr2D(5, height-5, helpInfo);
     }
 
     public void cameraAction(String dir) {
@@ -259,9 +302,6 @@ public class Renderer extends AbstractRenderer {
         switch(dir){
             case "forward":
                 cam.forward(deltaTrans);
-                if(cam.getPosition().getX() >= mg.getWidth() && cam.getPosition().getZ() >= mg.getWidth()){
-
-                }
                 if(mg.getWalls()[(int)cam.getPosition().getX()][(int)cam.getPosition().getZ()]){
                     cam.backward(deltaTrans);cam.backward(deltaTrans);
                 }
@@ -285,7 +325,16 @@ public class Renderer extends AbstractRenderer {
                 }
                 break;
         }
+        checkForEnd(cam);
         checkForScore(cam);
+    }
+
+    private void checkForEnd(GLCamera cam) {
+        if(endPoint.checkPositionWithCam(cam) && collectedScore == maxScoreGenerated){
+            makeSound("res/sounds/winner.wav");
+            gameEnded = true;
+            glDisable(GL_FOG);
+        }
     }
 
     private void checkForScore(GLCamera cam) {
@@ -301,14 +350,37 @@ public class Renderer extends AbstractRenderer {
 
     public void makeSound(String sound){
         File soundFile = new File(sound);
-
-
         try{
             Clip clip = AudioSystem.getClip();
             clip.open(AudioSystem.getAudioInputStream(soundFile));
             clip.start();
         } catch (Exception e){
             e.printStackTrace();
+        }
+    }
+
+    private void settings() {
+        int n = JOptionPane.showConfirmDialog(
+                null,
+                "Chceš nagenerovat náhodnou velikost bludiště?",
+                "Nastavení bludiště",
+                JOptionPane.YES_NO_OPTION);
+        if(n == JOptionPane.YES_OPTION) {
+            mazeSize = -1;
+        }else {
+            String s = (String) JOptionPane.showInputDialog(null, "Zvol velikost bludiště v intervalu 10-40", "Nastavení bludiště", JOptionPane.QUESTION_MESSAGE);
+            try{
+                mazeSize = Integer.parseInt(s);
+                if(mazeSize >= 10 && mazeSize <= 40){
+                    return;
+                }else{
+                    JOptionPane.showMessageDialog(null,"Je potřeba zvolit číslo v rozsahu!");
+                    settings();
+                }
+            }catch (Exception e){
+                JOptionPane.showMessageDialog(null,"Je potřeba zvolit platné číslo!");
+                settings();
+            }
         }
     }
 

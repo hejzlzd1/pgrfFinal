@@ -20,15 +20,15 @@ public class Wall {
     private int height = 1;
     private Point3D position;
 
-    public Wall(Point3D position, float size, lwjglutils.OGLTexture2D wallTexture){
-        this.position = position;
+    public Wall(Point3D pos, float size, lwjglutils.OGLTexture2D wallTexture){
+        this.position = pos;
         this.size = size;
 
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        //TODO: CULLING - rotate triangles
+        //TODO: CULLING - rotate triangles, lightning - add normal to walls
 
-        for(int i = 0; i <= height;i++){
+        for(int i = 0; i <= height;i++){ // cyklus urcuje vysku zdi
                 wallTexture.bind();
                 glBegin(GL_TRIANGLES); // front side
                 glColor3f(1f,0.55f,0f);
