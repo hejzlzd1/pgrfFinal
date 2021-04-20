@@ -16,17 +16,13 @@ public class Floor {
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
                 floorTexture.bind();
-                glBegin(GL_TRIANGLES); // dohromady tvori ctverec
+                glBegin(GL_TRIANGLE_STRIP); // dohromady tvori ctverec
 
                 glTexCoord2f(0.0f, 0.0f);
                 glColor3f(1f, 1f, 1f);
                 glVertex3d(i, position.getY(), i2);
 
                 glColor3f(1f, 1f, 1f);
-                glTexCoord2f(1.0f, 0.0f);
-                glVertex3d(i + size, position.getY(), i2);
-
-                glColor3f(1f, 1f, 1f);
                 glTexCoord2f(0.0f, 1.0f);
                 glVertex3d(i, position.getY(), i2 + size);
 
@@ -34,9 +30,15 @@ public class Floor {
                 glTexCoord2f(1.0f, 0.0f);
                 glVertex3d(i + size, position.getY(), i2);
 
+
+
                 glTexCoord2f(0.0f, 1.0f);
                 glColor3f(1f, 1f, 1f);
                 glVertex3d(i, position.getY(), i2 + size);
+
+                glColor3f(1f, 1f, 1f);
+                glTexCoord2f(1.0f, 0.0f);
+                glVertex3d(i + size, position.getY(), i2);
 
                 glColor3f(1f, 1f, 1f);
                 glTexCoord2f(1.0f, 1.0f);
