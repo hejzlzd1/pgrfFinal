@@ -5,13 +5,21 @@ import transforms.Point3D;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Floor {
-    private float size = 1;
+public class Floor extends GameObject {
+    private final float size;
+    private final int w; //width
+    private final int h; //height
 
-    public Floor(Point3D position, float size, int w, int h, OGLTexture2D floorTexture) {
+    public Floor(Point3D position, float size, int w, int h) {
+        setPosition(position);
+        this.size = size;
+        this.w = w;
+        this.h = h;
+    }
 
-        for (double i = position.getX(); i < w; i++) {
-            for (double i2 = position.getZ(); i2 < h; i2++) {
+    public void renderFloor(OGLTexture2D floorTexture) {
+        for (double i = getPosition().getX(); i < w; i++) {
+            for (double i2 = getPosition().getZ(); i2 < h; i2++) {
                 glEnable(GL_TEXTURE_2D);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 
@@ -20,29 +28,28 @@ public class Floor {
 
                 glTexCoord2f(0.0f, 0.0f);
                 glColor3f(1f, 1f, 1f);
-                glVertex3d(i, position.getY(), i2);
+                glVertex3d(i, getPosition().getY(), i2);
 
                 glColor3f(1f, 1f, 1f);
                 glTexCoord2f(0.0f, 1.0f);
-                glVertex3d(i, position.getY(), i2 + size);
+                glVertex3d(i, getPosition().getY(), i2 + size);
 
                 glColor3f(1f, 1f, 1f);
                 glTexCoord2f(1.0f, 0.0f);
-                glVertex3d(i + size, position.getY(), i2);
-
+                glVertex3d(i + size, getPosition().getY(), i2);
 
 
                 glTexCoord2f(0.0f, 1.0f);
                 glColor3f(1f, 1f, 1f);
-                glVertex3d(i, position.getY(), i2 + size);
+                glVertex3d(i, getPosition().getY(), i2 + size);
 
                 glColor3f(1f, 1f, 1f);
                 glTexCoord2f(1.0f, 0.0f);
-                glVertex3d(i + size, position.getY(), i2);
+                glVertex3d(i + size, getPosition().getY(), i2);
 
                 glColor3f(1f, 1f, 1f);
                 glTexCoord2f(1.0f, 1.0f);
-                glVertex3d(i + size, position.getY(), i2 + size);
+                glVertex3d(i + size, getPosition().getY(), i2 + size);
                 glEnd();
 
                 glDisable(GL_TEXTURE_2D);

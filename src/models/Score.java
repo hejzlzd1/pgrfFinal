@@ -1,34 +1,49 @@
 package models;
 
 import extension.global.GLCamera;
-import transforms.Point3D;
 
-public class Score {
-    private Point3D position;
-    private float size;
+import static extension.global.GlutUtils.glutSolidSphere;
+import static org.lwjgl.opengl.GL11.*;
 
-    public Point3D getPosition() {
-        return position;
-    }
+public class Score extends GameObject {
 
-    public void setPosition(Point3D position) {
-        this.position = position;
-    }
+    private boolean shouldShrink;
 
-    public float getSize() {
-        return size;
-    }
-
-    public void setSize(float size) {
-        this.size = size;
-    }
 
     public Score(transforms.Point3D position, float size) {
-        this.position = position;
-        this.size = size;
+        setPosition(position);
+        setSize(size);
+        shouldShrink = true;
     }
 
     public boolean checkPositionWithCam(GLCamera cam) {
-        return ((cam.getPosition().getX() >= position.getX() - 0.5 && cam.getPosition().getX() <= position.getX() + 0.5) && (cam.getPosition().getZ() >= position.getZ() - 0.5 && cam.getPosition().getZ() <= position.getZ() + 0.5));
+        return ((cam.getPosition().getX() >= getPosition().getX() - 0.5 && cam.getPosition().getX() <= getPosition().getX() + 0.5) && (cam.getPosition().getZ() >= getPosition().getZ() - 0.5 && cam.getPosition().getZ() <= getPosition().getZ() + 0.5));
+    }
+
+    public void renderScore(lwjglutils.OGLTexture2D scoreTexture) {
+        glEnable(GL_TEXTURE_2D);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPLACE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPLACE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        scoreTexture.bind();
+
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glTranslatef((float) getPosition().getX(), (float) getPosition().getY(), (float) getPosition().getZ());
+        glColor3f(0.9f, 0.1f, 0.1f);
+        glutSolidSphere(getSize(), 20, 20);// Koule
+        glPopMatrix();
+
+        glDisable(GL_TEXTURE_2D);
+    }
+
+    public boolean isShouldShrink() {
+        return shouldShrink;
+    }
+
+    public void setShouldShrink(boolean shouldShrink) {
+        this.shouldShrink = shouldShrink;
     }
 }

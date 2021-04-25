@@ -4,8 +4,8 @@ import transforms.Point3D;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Wall {
-    private float size = 1f;
+public class Wall extends GameObject {
+    private final float size;
 
     public int getHeight() {
         return height;
@@ -16,12 +16,13 @@ public class Wall {
     }
 
     private int height = 1;
-    private Point3D position;
 
-    public Wall(Point3D pos, float size, lwjglutils.OGLTexture2D wallTexture) {
-        this.position = pos;
+    public Wall(Point3D pos, float size) {
+        setPosition(pos);
         this.size = size;
+    }
 
+    public void renderWall(lwjglutils.OGLTexture2D wallTexture) {
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
         //TODO: lightning - add normal to walls
@@ -30,65 +31,66 @@ public class Wall {
         for (int i = 0; i <= height; i++) { // cyklus urcuje vysku zdi
             wallTexture.bind();
             glBegin(GL_TRIANGLE_STRIP); // front side
+            glNormal3f(0, 0, 1);
             glColor3f(1f, 0.55f, 0f);
             glTexCoord2f(0.0f, 0.0f);
-            glVertex3d(position.getX(), position.getY() + i, position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + i, getPosition().getZ());
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size) + i, position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size) + i, getPosition().getZ());
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + i, position.getZ());
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + i, getPosition().getZ());
 
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size) + i, position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size) + i, getPosition().getZ());
 
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, (position.getY() + i), position.getZ());
-
+            glVertex3d(getPosition().getX() + size, (getPosition().getY() + i), getPosition().getZ());
 
 
             glTexCoord2f(1.0f, 1.0f);
-            glVertex3d(position.getX() + size, (position.getY() + (size) + i), position.getZ());
+            glVertex3d(getPosition().getX() + size, (getPosition().getY() + (size) + i), getPosition().getZ());
             glEnd();
 
         }
 
         for (int i = 0; i <= height; i++) { //left
             glBegin(GL_TRIANGLE_STRIP);
+            glNormal3f(-1, 0, 0);
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX() + size, position.getY() + (size + i), position.getZ());
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + i), getPosition().getZ());
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(0.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + (i), position.getZ());
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (i), getPosition().getZ());
 
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX() + size, position.getY() + (size) + i, position.getZ());
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (size) + i, getPosition().getZ());
 
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(1.0f, 1.0f);
-            glVertex3d(position.getX() + size, position.getY() + (size) + i, position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (size) + i, getPosition().getZ() + size);
             glEnd();
         }
 
         for (int i = 0; i <= height; i++) {
             glBegin(GL_TRIANGLE_STRIP);
-
+            glNormal3f(1, 0, 0);
             glTexCoord2f(0.0f, 0.0f);
-            glVertex3d(position.getX(), position.getY() + (i), position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ());
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX(), position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size + i), position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size + i), getPosition().getZ());
 
 
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX(), position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size + i), position.getZ());
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size + i), getPosition().getZ());
 
             glTexCoord2f(1.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size + i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size + i), getPosition().getZ() + size);
 
             glEnd();
         }
@@ -96,40 +98,42 @@ public class Wall {
 
         for (int i = 0; i <= height; i++) {
             glBegin(GL_TRIANGLE_STRIP);
+            glNormal3f(0, 0, -1);
             glTexCoord2f(0.0f, 0.0f);
-            glVertex3d(position.getX(), position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size + i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size + i), getPosition().getZ() + size);
 
             glTexCoord2f(1.0f, 1.0f);
-            glVertex3d(position.getX() + size, position.getY() + (size + i), position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + i), getPosition().getZ() + size);
             glTexCoord2f(1.0f, 0.0f);
-            glVertex3d(position.getX() + size, position.getY() + (i), position.getZ() + size);
+            glVertex3d(getPosition().getX() + size, getPosition().getY() + (i), getPosition().getZ() + size);
 
             glTexCoord2f(0.0f, 1.0f);
-            glVertex3d(position.getX(), position.getY() + (size + i), position.getZ() + size);
+            glVertex3d(getPosition().getX(), getPosition().getY() + (size + i), getPosition().getZ() + size);
             glEnd();
         }
 
         // uzavreni objektu - top
 
         glBegin(GL_TRIANGLE_STRIP);
+        glNormal3f(0, 1, 0);
         glTexCoord2f(0.0f, 0.0f);
-        glVertex3d(position.getX(), position.getY() + (size + height), position.getZ());
+        glVertex3d(getPosition().getX(), getPosition().getY() + (size + height), getPosition().getZ());
         glTexCoord2f(0.0f, 1.0f);
-        glVertex3d(position.getX(), position.getY() + (size + height), position.getZ() + size);
+        glVertex3d(getPosition().getX(), getPosition().getY() + (size + height), getPosition().getZ() + size);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex3d(position.getX() + size, position.getY() + (size + height), position.getZ());
+        glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + height), getPosition().getZ());
 
 
         glTexCoord2f(0.0f, 1.0f);
-        glVertex3d(position.getX(), position.getY() + (size + height), position.getZ() + size);
+        glVertex3d(getPosition().getX(), getPosition().getY() + (size + height), getPosition().getZ() + size);
         glTexCoord2f(1.0f, 0.0f);
-        glVertex3d(position.getX() + size, position.getY() + (size + height), position.getZ());
+        glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + height), getPosition().getZ());
         glTexCoord2f(1.0f, 1.0f);
-        glVertex3d(position.getX() + size, position.getY() + (size + height), position.getZ() + size);
+        glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + height), getPosition().getZ() + size);
         glEnd();
         glDisable(GL_TEXTURE_2D);
     }

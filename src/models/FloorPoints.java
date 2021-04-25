@@ -1,6 +1,5 @@
 package models;
 
-import extension.global.GLCamera;
 import transforms.Point3D;
 
 import static org.lwjgl.opengl.GL11.*;
@@ -8,11 +7,10 @@ import static org.lwjgl.opengl.GL11C.glEnable;
 import static org.lwjgl.opengl.GL11C.glTexParameteri;
 
 
-public class FloorPoints {
-    private Point3D position;
+public class FloorPoints extends GameObject {
 
     public FloorPoints(Point3D position, lwjglutils.OGLTexture2D texture) {
-        this.position = position;
+        setPosition(position);
         glEnable(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPLACE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPLACE);
@@ -38,7 +36,5 @@ public class FloorPoints {
         glDisable(GL_TEXTURE_2D);
     }
 
-    public boolean checkPositionWithCam(GLCamera cam) {
-        return ((cam.getPosition().getX() >= position.getX() - 0.5 && cam.getPosition().getX() <= position.getX() + 0.5) && (cam.getPosition().getZ() >= position.getZ() - 0.5 && cam.getPosition().getZ() <= position.getZ() + 0.5));
-    }
+
 }
