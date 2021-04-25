@@ -32,7 +32,6 @@ import static org.lwjgl.opengl.GL11.*;
 public class Renderer extends AbstractRenderer {
     private float dx, dy, ox, oy;
     private float zenit, azimut;
-    private final float kA = 0.5f;
     private lwjglutils.OGLTexture2D floorTexture;
     private lwjglutils.OGLTexture2D wallTexture;
     private lwjglutils.OGLTexture2D scoreTexture;
@@ -41,16 +40,15 @@ public class Renderer extends AbstractRenderer {
     private int collectedScore;
     private int maxScoreGenerated;
     private double zenith;
-    private final float kD = 0.5f;
+    private float playerHeight;
+    private boolean walkDown;
     private GLCamera camera;
     private MazeGenerator mg;
     private boolean gameEnded;
     private boolean flightMode;
     private float deltaTrans = 0;
     private boolean mouseButton1 = false;
-    private final float kS = 0.5f;
     private String scoreInfo;
-    private final float kH = 10;
     private int mazeSize = 20;
     private FloorPoints endPoint;
     private MazeProcessor mp;
@@ -59,7 +57,7 @@ public class Renderer extends AbstractRenderer {
     private ShrinkScoreUtil ssu;
     private boolean renderInRadius;
     private long startTime, endTime;
-    private float kE;
+
 
 
     public Renderer() {
@@ -219,6 +217,8 @@ public class Renderer extends AbstractRenderer {
         camera = new GLCamera();
         camera.setPosition(new transforms.Vec3D(mg.getStart().getX() + 0.5, 1.5, mg.getStart().getZ() + 0.5));
         camera.setFirstPerson(true);
+        playerHeight = 1.5f;
+        walkDown = true;
 
         try {
             floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
@@ -382,7 +382,19 @@ public class Renderer extends AbstractRenderer {
                     cam.left(deltaTrans);
                 }
             }
+            default -> //chyba - neplatný směr?
+                    System.out.println("Neplatný směr: " + dir);
         }
+        if (walkDown) {
+            playerHeight = playerHeight - 0.005f;
+            cam.setPosition(cam.getPosition().withY(playerHeight));
+            if (playerHeight <= 1.3f) walkDown = false;
+        } else {
+            playerHeight = playerHeight + 0.005f;
+            cam.setPosition(cam.getPosition().withY(playerHeight));
+            if (playerHeight >= 1.5) walkDown = true;
+        }
+
         checkForEnd(cam);
         checkForScore(cam);
     }

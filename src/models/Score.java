@@ -8,12 +8,14 @@ import static org.lwjgl.opengl.GL11.*;
 public class Score extends GameObject {
 
     private boolean shouldShrink;
+    private boolean shouldFlyDown;
 
 
     public Score(transforms.Point3D position, float size) {
         setPosition(position);
         setSize(size);
         shouldShrink = true;
+        shouldFlyDown = true;
     }
 
     public boolean checkPositionWithCam(GLCamera cam) {
@@ -41,6 +43,14 @@ public class Score extends GameObject {
 
     public boolean isShouldShrink() {
         return shouldShrink;
+    }
+
+    public boolean isShouldFlyDown() {
+        return shouldFlyDown;
+    }
+
+    public void setShouldFlyDown(boolean shouldFlyDown) {
+        this.shouldFlyDown = shouldFlyDown;
     }
 
     public void setShouldShrink(boolean shouldShrink) {
