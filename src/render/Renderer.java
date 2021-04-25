@@ -73,6 +73,7 @@ public class Renderer extends AbstractRenderer {
                 if (action == GLFW_PRESS) {
                     switch (key) {
                         case GLFW_KEY_W, GLFW_KEY_D, GLFW_KEY_S, GLFW_KEY_A -> deltaTrans = 0.05f;
+                        case GLFW_KEY_LEFT_SHIFT -> deltaTrans = 0.08f;
                         case GLFW_KEY_M -> {
                             if (flightMode) {
                                 camera.setPosition(camera.getPosition().withY(1.5));
@@ -86,7 +87,7 @@ public class Renderer extends AbstractRenderer {
                             glDisable(GL_FOG);
                             camera.setPosition(new Vec3D(mg.getStart().getX() + 0.5, 1.5, mg.getStart().getZ() + 0.5));
                         }
-                        case GLFW_KEY_H -> JOptionPane.showMessageDialog(null, "H - Toto okno \n WSAD - Pohyb \n M - Přepínání mezi pohybem a levitací pohledem \n R - Let nahoru \n F - Let dolu \n C - reset \n F1 - debug mód (dočasné - zpřístupní mód po dokončení labyrintu)");
+                        case GLFW_KEY_H -> JOptionPane.showMessageDialog(null, "H - Toto okno \n WSAD - Pohyb \n M - Přepínání mezi pohybem a levitací \n R - Let nahoru \n F - Let dolu \n C - reset \n Levý shift - Sprint (při pohybu) \n F1 - debug mód (zpřístupní mód po dokončení labyrintu - při vypnutí se vrací do původního stavu)");
                         case GLFW_KEY_C -> init();
                     }
                 }
@@ -115,6 +116,7 @@ public class Renderer extends AbstractRenderer {
                 if (action == GLFW_RELEASE) {
                     switch (key) {
                         case GLFW_KEY_W, GLFW_KEY_S, GLFW_KEY_A, GLFW_KEY_D -> cameraPressKey = 0;
+                        case GLFW_KEY_LEFT_SHIFT -> deltaTrans = 0.05f;
                     }
                 }
             }
@@ -460,7 +462,6 @@ public class Renderer extends AbstractRenderer {
     }
 
     public void makeSound(URL sound) {
-        System.out.println(sound);
         try {
             Clip clip = AudioSystem.getClip();
             clip.open(AudioSystem.getAudioInputStream(sound));
