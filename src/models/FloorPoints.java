@@ -9,8 +9,11 @@ import static org.lwjgl.opengl.GL11C.glTexParameteri;
 
 public class FloorPoints extends GameObject {
 
-    public FloorPoints(Point3D position, lwjglutils.OGLTexture2D texture) {
+    public FloorPoints(Point3D position) {
         setPosition(position);
+    }
+
+    public void renderFloorPoint(lwjglutils.OGLTexture2D texture) {
         glEnable(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPLACE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPLACE);
@@ -23,13 +26,13 @@ public class FloorPoints extends GameObject {
         glPushMatrix();
         glBegin(GL_QUADS);
         glTexCoord2f(0f, 0f);
-        glVertex3f((float) position.getX(), 0.01f, (float) position.getZ());
+        glVertex3f((float) getPosition().getX(), 0.01f, (float) getPosition().getZ());
         glTexCoord2f(0.0f, 1f);
-        glVertex3f((float) position.getX(), 0.01f, (float) position.getZ() + 1f);
+        glVertex3f((float) getPosition().getX(), 0.01f, (float) getPosition().getZ() + 1f);
         glTexCoord2f(1f, 1f);
-        glVertex3f((float) position.getX() + 1f, 0.01f, (float) position.getZ() + 1f);
+        glVertex3f((float) getPosition().getX() + 1f, 0.01f, (float) getPosition().getZ() + 1f);
         glTexCoord2f(1f, 0f);
-        glVertex3f((float) position.getX() + 1f, 0.01f, (float) position.getZ());
+        glVertex3f((float) getPosition().getX() + 1f, 0.01f, (float) getPosition().getZ());
         glEnd();
         glPopMatrix();
 

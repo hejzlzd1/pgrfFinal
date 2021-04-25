@@ -31,7 +31,8 @@ public class Wall extends GameObject {
         for (int i = 0; i <= height; i++) { // cyklus urcuje vysku zdi
             wallTexture.bind();
             glBegin(GL_TRIANGLE_STRIP); // front side
-            glNormal3f(0, 0, 1);
+            glNormal3f(0, 0, -1);
+
             glColor3f(1f, 0.55f, 0f);
             glTexCoord2f(0.0f, 0.0f);
             glVertex3d(getPosition().getX(), getPosition().getY() + i, getPosition().getZ());
@@ -53,9 +54,10 @@ public class Wall extends GameObject {
 
         }
 
-        for (int i = 0; i <= height; i++) { //left
+        for (int i = 0; i <= height; i++) { //right
             glBegin(GL_TRIANGLE_STRIP);
-            glNormal3f(-1, 0, 0);
+            glNormal3f(1, 0, 0);
+
             glTexCoord2f(0.0f, 1.0f);
             glVertex3d(getPosition().getX() + size, getPosition().getY() + (size + i), getPosition().getZ());
             glTexCoord2f(1.0f, 0.0f);
@@ -74,8 +76,8 @@ public class Wall extends GameObject {
         }
 
         for (int i = 0; i <= height; i++) {
-            glBegin(GL_TRIANGLE_STRIP);
-            glNormal3f(1, 0, 0);
+            glBegin(GL_TRIANGLE_STRIP); //zadni strana
+            glNormal3f(0, 0, 1);
             glTexCoord2f(0.0f, 0.0f);
             glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ());
             glTexCoord2f(1.0f, 0.0f);
@@ -97,8 +99,8 @@ public class Wall extends GameObject {
 
 
         for (int i = 0; i <= height; i++) {
-            glBegin(GL_TRIANGLE_STRIP);
-            glNormal3f(0, 0, -1);
+            glBegin(GL_TRIANGLE_STRIP); //left
+            glNormal3f(-1, 0, 0);
             glTexCoord2f(0.0f, 0.0f);
             glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ() + size);
             glTexCoord2f(1.0f, 0.0f);

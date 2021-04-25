@@ -22,7 +22,7 @@ public class Floor extends GameObject {
             for (double i2 = getPosition().getZ(); i2 < h; i2++) {
                 glEnable(GL_TEXTURE_2D);
                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
-
+                glNormal3f(0, 1, 0);
                 floorTexture.bind();
                 glBegin(GL_TRIANGLE_STRIP); // dohromady tvori ctverec
 

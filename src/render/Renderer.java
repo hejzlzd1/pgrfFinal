@@ -31,34 +31,31 @@ import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.*;
 
 public class Renderer extends AbstractRenderer {
-    private float dx, dy, ox, oy;
-    private float zenit, azimut;
-    private lwjglutils.OGLTexture2D floorTexture;
-    private lwjglutils.OGLTexture2D wallTexture;
-    private lwjglutils.OGLTexture2D scoreTexture;
-    private lwjglutils.OGLTexture2D startTexture;
-    private lwjglutils.OGLTexture2D endTexture;
-    private int collectedScore;
-    private int maxScoreGenerated;
-    private double zenith;
+    private final float kA = 0.5f;
+    private final float kD = 0.5f;
+    private final float kS = 0.5f;
+    private final float kH = 10;
+    private float dx;
+    private float dy;
+    private float ox;
+    private float oy;
+    private float zenit;
+    private float azimut;
     private float playerHeight;
-    private boolean walkDown;
+    private float deltaTrans = 0;
+    private float kE;
+    private lwjglutils.OGLTexture2D floorTexture, wallTexture, scoreTexture, startTexture, endTexture;
+    private int collectedScore, maxScoreGenerated, mazeSize = 20, cameraPressKey;
+    private boolean walkDown, gameEnded, flightMode, mouseButton1 = false, renderInRadius;
+    private double zenith;
     private GLCamera camera;
     private MazeGenerator mg;
-    private boolean gameEnded;
-    private boolean flightMode;
-    private float deltaTrans = 0;
-    private boolean mouseButton1 = false;
     private String scoreInfo;
-    private int mazeSize = 20;
-    private FloorPoints endPoint;
+    private FloorPoints endPoint, startPoint;
     private MazeProcessor mp;
-    private int cameraPressKey;
     private Floor fl;
     private ShrinkScoreUtil ssu;
-    private boolean renderInRadius;
     private long startTime, endTime;
-
 
 
     public Renderer() {
@@ -181,19 +178,14 @@ public class Renderer extends AbstractRenderer {
         settings();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-        glEnable(GL_FOG);
-        glFogi(GL_FOG_MODE, GL_LINEAR);
-        glFogi(GL_FOG_START, (int) 0f);
-        glFogi(GL_FOG_END, (int) 8f);
-        glFogf(GL_FOG_DENSITY, 0.08f);
-        glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
+        setFog();
 
         cameraPressKey = 0;
         deltaTrans = 0.05f;
         gameEnded = false;
         flightMode = false;
         renderInRadius = true;
-        glEnable(GL_DEPTH_TEST);
+
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
@@ -213,6 +205,8 @@ public class Renderer extends AbstractRenderer {
         collectedScore = 0;
         mp.createScore(mg.getWalls(), maxScoreGenerated);
         mp.createWalls(mg.getWalls(), wallTexture);
+        startPoint = new FloorPoints(mg.getStart());
+        endPoint = new FloorPoints(mg.getEnd());
         fl = new Floor(new Point3D(0, 0, 0), 1f, mg.getWidth() + 1, mg.getHeight() + 1);
 
         camera = new GLCamera();
@@ -220,6 +214,8 @@ public class Renderer extends AbstractRenderer {
         camera.setFirstPerson(true);
         playerHeight = 1.5f;
         walkDown = true;
+
+        setLight();
 
         try {
             floorTexture = new lwjglutils.OGLTexture2D("textures/stonefloor.jpg");
@@ -232,14 +228,26 @@ public class Renderer extends AbstractRenderer {
         }
     }
 
+    private void setFog() {
+        glEnable(GL_FOG);
+        glFogi(GL_FOG_MODE, GL_LINEAR);
+        glFogi(GL_FOG_START, (int) 0f);
+        glFogi(GL_FOG_END, (int) 8f);
+        glFogf(GL_FOG_DENSITY, 0.08f);
+        glFogfv(GL_FOG_COLOR, new float[]{0.1f, 0.1f, 0.1f, 1});
+    }
+
     @Override
     public void display() {
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // clear the framebuffer
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
         glClearColor(0f, 0f, 0f, 1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        setLight();
         moveCameraFPS(); // smooth camera - because movement is with every frame (not by press)
         ssu.setCamera(camera);
 
@@ -250,44 +258,25 @@ public class Renderer extends AbstractRenderer {
 
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
-
-        glPushMatrix();
         camera.setMatrix();
-        for (Score sc : mp.getScoreList()) {
-            if (renderInRadius) {
-                if (sc.isNearCamera(camera, 15)) {
-                    sc.renderScore(scoreTexture);
-                }
-            } else {
-                sc.renderScore(scoreTexture);
-            }
+        if (!gameEnded) {
+            float[] light_position;
+            light_position = new float[]{(float) camera.getPosition().getX(), (float) camera.getPosition().getY(), (float) camera.getPosition().getZ(), 1.0f}; //bod světla
+            glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+            float[] light_direction = {(float) camera.getEyeVector().getX(), (float) camera.getEyeVector().getY(), (float) camera.getEyeVector().getZ(), 0f}; //směr reflektoru
+            glEnable(GL_LIGHTING); // stínování
+            glEnable(GL_LIGHT0);
+            glShadeModel(GL_SMOOTH);
+            glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 80);
+            glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, light_direction);
+            glEnable(GL_COLOR_MATERIAL);
         }
-        glPopMatrix();
+        renderScene();
+        glDisable(GL_LIGHTING);
+        glDisable(GL_LIGHT0);
 
-        glPushMatrix();
-        camera.setMatrix();
-        for (Wall wall : mp.getWallList()) {
-            if (renderInRadius) {
-                if (wall.isNearCamera(camera, 15)) { // optimalization, rendering just in radius (if game is not complete)
-                    wall.renderWall(wallTexture);
-                }
-            } else {
-                wall.renderWall(wallTexture);
-            }
-        }
-
-        glPopMatrix();
-
-        glPushMatrix();
-        camera.setMatrix();
-        fl.renderFloor(floorTexture);
-        glPopMatrix();
-
-        glPushMatrix();
-        camera.setMatrix();
-        new FloorPoints(mg.getStart(), startTexture);
-        endPoint = new FloorPoints(mg.getEnd(), endTexture);
-        glPopMatrix();
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_DEPTH_TEST);
 
         endTime = System.currentTimeMillis();
         if (!gameEnded) {
@@ -306,8 +295,52 @@ public class Renderer extends AbstractRenderer {
         String helpInfo = "Stiskni H pro dialogove okno s napovedou.";
         textRenderer.addStr2D(5, height - 5, helpInfo);
 
-        glDisable(GL_LIGHTING);
-        glDisable(GL_LIGHT0);
+    }
+
+    private void renderScene() {
+        glEnable(GL_NORMALIZE); //light
+        setMaterial();
+        glPushMatrix();
+
+        for (Score sc : mp.getScoreList()) {
+            if (renderInRadius) {
+                if (sc.isNearCamera(camera, 15)) {
+
+                    sc.renderScore(scoreTexture);
+                }
+            } else {
+                sc.renderScore(scoreTexture);
+            }
+        }
+        glPopMatrix();
+
+        setMaterial();
+        glPushMatrix();
+
+        for (Wall wall : mp.getWallList()) {
+            if (renderInRadius) {
+                if (wall.isNearCamera(camera, 15)) { // optimalization, rendering just in radius (if game is not complete)
+                    wall.renderWall(wallTexture);
+                }
+            } else {
+                wall.renderWall(wallTexture);
+            }
+        }
+
+        glPopMatrix();
+
+        setMaterial();
+        glPushMatrix();
+
+        fl.renderFloor(floorTexture);
+        glPopMatrix();
+
+        glPushMatrix();
+
+        setMaterial();
+        startPoint.renderFloorPoint(startTexture);
+        endPoint.renderFloorPoint(endTexture);
+        glPopMatrix();
     }
 
     private void moveCameraFPS() {
@@ -389,11 +422,17 @@ public class Renderer extends AbstractRenderer {
         if (walkDown) {
             playerHeight = playerHeight - 0.005f;
             cam.setPosition(cam.getPosition().withY(playerHeight));
-            if (playerHeight <= 1.3f) walkDown = false;
+            if (playerHeight <= 1.3f) {
+                walkDown = false;
+                makeSound(this.getClass().getResource("/sounds/walk.wav"));
+            }
         } else {
             playerHeight = playerHeight + 0.005f;
             cam.setPosition(cam.getPosition().withY(playerHeight));
-            if (playerHeight >= 1.5) walkDown = true;
+            if (playerHeight >= 1.5) {
+                walkDown = true;
+                makeSound(this.getClass().getResource("/sounds/walk.wav"));
+            }
         }
 
         checkForEnd(cam);
@@ -455,5 +494,65 @@ public class Renderer extends AbstractRenderer {
                 settings();
             }
         }
+    }
+
+    //lightning
+    private void setLight() {
+        // light source setting - specular component
+        float[] light_spec = new float[]{1, 1, 1, 1};
+        // light source setting - diffuse component
+        float[] light_dif = new float[]{1, 1, 1, 1};
+        // light source setting - ambient component
+        float[] light_amb = new float[]{1, 1, 1, 1};
+
+        glLightfv(GL_LIGHT0, GL_AMBIENT, light_amb);
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_dif);
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_spec);
+        glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, kH);
+    }
+
+    private void setMaterial(int mode) {
+        float initV = 0;
+        // surface material setting - specular reflection
+        float[] mat_spec = new float[]{initV, initV, initV, 1};
+        // surface material setting - diffuse reflection
+        float[] mat_dif = new float[]{initV, initV, initV, 1};
+        // surface material setting - ambient reflection
+        float[] mat_amb = new float[]{initV, initV, initV, 1};
+
+        // surface material setting - emission
+        float[] mat_emis = new float[]{initV, initV, initV, 1};
+
+        int index = mode % 3;
+
+        mat_dif[index] = kD;
+        mat_spec[index] = kS;
+        mat_amb[index] = kA;
+        mat_emis[index] = kE;
+
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_amb);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_dif);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_spec);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, kH);
+        glMaterialfv(GL_FRONT, GL_EMISSION, mat_emis);
+    }
+
+    private void setMaterial() {
+        float initV = 0;
+        // surface material setting - specular reflection
+        float[] mat_spec = new float[]{initV, initV, initV, 1};
+        // surface material setting - diffuse reflection
+        float[] mat_dif = new float[]{initV, initV, initV, 1};
+        // surface material setting - ambient reflection
+        float[] mat_amb = new float[]{initV, initV, initV, 1};
+
+        // surface material setting - emission
+        float[] mat_emis = new float[]{initV, initV, initV, 1};
+
+        glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_amb);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_dif);
+        glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_spec);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, kH);
+        glMaterialfv(GL_FRONT, GL_EMISSION, mat_emis);
     }
 }

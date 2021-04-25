@@ -14,7 +14,7 @@ public class ShrinkScoreUtil {
         Runnable scoreShrink = () -> {
             if (!mp.getScoreList().isEmpty()) {
                 for (Score sc : mp.getScoreList()) {
-                    if (sc.isNearCamera(camera, 5)) {
+                    if (sc.isNearCamera(camera, 8)) {
                         if (sc.isShouldShrink()) {
                             sc.setSize(sc.getSize() - 0.01f);
                             if (sc.getSize() <= 0.1f) sc.setShouldShrink(false);
