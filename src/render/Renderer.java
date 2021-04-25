@@ -19,6 +19,7 @@ import utils.ShrinkScoreUtil;
 
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.FloatControl;
 import javax.swing.*;
 import java.io.IOException;
 import java.net.URL;
@@ -424,6 +425,9 @@ public class Renderer extends AbstractRenderer {
         try {
             Clip clip = AudioSystem.getClip();
             clip.open(AudioSystem.getAudioInputStream(sound));
+            FloatControl gainControl =
+                    (FloatControl) clip.getControl(FloatControl.Type.MASTER_GAIN);
+            gainControl.setValue(-7.0f); // Reduce volume by 10 decibels.
             clip.start();
         } catch (Exception e) {
             e.printStackTrace();
