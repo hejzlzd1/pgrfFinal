@@ -15,22 +15,20 @@ public class Wall extends GameObject {
         this.height = height;
     }
 
-    private int height = 1;
+    private int height = 1; // určuje výšku - tato je optimální na funkčnost mé implementace
 
     public Wall(Point3D pos, float size) {
         setPosition(pos);
         this.size = size;
     }
 
-    public void renderWall(lwjglutils.OGLTexture2D wallTexture) {
+    public void renderWall(lwjglutils.OGLTexture2D wallTexture) { // vykreslí zeď
         glEnable(GL_TEXTURE_2D);
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-        //TODO: lightning - add normal to walls
-
 
         for (int i = 0; i <= height; i++) { // cyklus urcuje vysku zdi
             wallTexture.bind();
-            glBegin(GL_TRIANGLE_STRIP); // front side
+            glBegin(GL_TRIANGLE_STRIP); // přední strana
             glNormal3f(0, 0, -1);
 
             glColor3f(1f, 0.55f, 0f);
@@ -54,7 +52,7 @@ public class Wall extends GameObject {
 
         }
 
-        for (int i = 0; i <= height; i++) { //right
+        for (int i = 0; i <= height; i++) { // pravá strana
             glBegin(GL_TRIANGLE_STRIP);
             glNormal3f(1, 0, 0);
 
@@ -76,7 +74,7 @@ public class Wall extends GameObject {
         }
 
         for (int i = 0; i <= height; i++) {
-            glBegin(GL_TRIANGLE_STRIP); //zadni strana
+            glBegin(GL_TRIANGLE_STRIP); // zadní strana
             glNormal3f(0, 0, 1);
             glTexCoord2f(0.0f, 0.0f);
             glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ());
@@ -99,7 +97,7 @@ public class Wall extends GameObject {
 
 
         for (int i = 0; i <= height; i++) {
-            glBegin(GL_TRIANGLE_STRIP); //left
+            glBegin(GL_TRIANGLE_STRIP); // levá strana
             glNormal3f(-1, 0, 0);
             glTexCoord2f(0.0f, 0.0f);
             glVertex3d(getPosition().getX(), getPosition().getY() + (i), getPosition().getZ() + size);
@@ -118,7 +116,7 @@ public class Wall extends GameObject {
             glEnd();
         }
 
-        // uzavreni objektu - top
+        // uzavreni objektu - vrchní část
 
         glBegin(GL_TRIANGLE_STRIP);
         glNormal3f(0, 1, 0);

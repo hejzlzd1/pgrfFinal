@@ -13,7 +13,7 @@ public class FloorPoints extends GameObject {
         setPosition(position);
     }
 
-    public void renderFloorPoint(lwjglutils.OGLTexture2D texture) {
+    public void renderFloorPoint(lwjglutils.OGLTexture2D texture) { // čtverce které jsou mírně nad podlahou - určují konec a start bludiště
         glEnable(GL_TEXTURE_2D);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPLACE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPLACE);

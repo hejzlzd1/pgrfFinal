@@ -63,17 +63,6 @@ public class MazeGenerator {
         return height;
     }
 
-    public void printMaze() { // debug - print maze
-        for (int s = 0; s < height; s++) {
-            for (int x = 0; x < width; x++) {
-                Node node = nodes[x + s * width];
-
-                System.out.print(node.c + " ");
-            }
-            System.out.println();
-        }
-    }
-
     private void init() {
         int i, j;
         Node b;

@@ -3,7 +3,7 @@ package models;
 import extension.global.GLCamera;
 import transforms.Point3D;
 
-public class GameObject {
+public class GameObject { // třída sjednocující parametry a některé třídy - ostatní objekty z ní dědí
     private Point3D position;
     private float size;
 
@@ -23,7 +23,7 @@ public class GameObject {
         this.size = size;
     }
 
-    public boolean isNearCamera(GLCamera camera, float radius) {
+    public boolean isNearCamera(GLCamera camera, float radius) { // zkoumá zda je objekt poblíž kamery
         return (camera.getPosition().getX() >= position.getX() - radius && camera.getPosition().getX() <= position.getX() + radius) && (camera.getPosition().getZ() >= position.getZ() - radius && camera.getPosition().getZ() <= position.getZ() + radius);
     }
 }
